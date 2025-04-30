@@ -1,88 +1,121 @@
 'use client';
 
-import { use, useState } from 'react';
-import { notFound } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import Lightbox from 'yet-another-react-lightbox';
-import 'yet-another-react-lightbox/styles.css';
-import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails';
-import 'yet-another-react-lightbox/plugins/thumbnails.css';
-import Captions from 'yet-another-react-lightbox/plugins/captions';
-import 'yet-another-react-lightbox/plugins/captions.css';
 
-// Define album type
-type AlbumKey = 'modern-interiors' | 'classic-rooms';
-type ImageItem = { src: string; title: string };
+// Define the album key type
+type AlbumKey = 'modern' | 'classic' | 'o_classic';
 
-// Albums data
-const albums: Record<AlbumKey, ImageItem[]> = {
-    'modern-interiors': [
-        { src: '/modern/1.jpg', title: 'Modern Living Room' },
-        { src: '/modern/2.jpg', title: 'Modern Kitchen' },
-        { src: '/modern/3.jpg', title: 'Modern Bedroom' },
+const homepageImages: Record<AlbumKey, string[]> = {
+    modern: [
+        '/modern/1.jpg',
+        '/modern/2.jpg',
+        '/modern/3.jpg',
     ],
-    'classic-rooms': [
-        { src: '/classic/1.jpg', title: 'Classic Living Room' },
-        { src: '/classic/2.jpg', title: 'Classic Dining Room' },
-        { src: '/classic/3.jpg', title: 'Classic Library' },
+    classic: [
+        '/classic/1.jpg',
+        '/classic/2.jpg',
+        '/classic/3.jpg',
+    ],
+    o_classic: [
+        '/o_classic/1.jpg',
+        '/o_classic/2.jpg',
+        '/o_classic/3.jpg',
     ],
 };
 
-// ✅ Client component with async param unwrap
-export default function AlbumPage({ params }: { params: Promise<{ album: string }> }) {
-    const { album } = use(params);
+export default function Home() {
+    const [selectedAlbum, setSelectedAlbum] = useState<AlbumKey>('modern');
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Assert album as known key (if it exists)
-    const images = albums[album as AlbumKey] ?? [];
+    const startTimer = () => {
+        timerRef.current = setInterval(() => {
+            setCurrentImageIndex((prev) =>
+                (prev + 1) % homepageImages[selectedAlbum].length
+            );
+        }, 4000);
+    };
 
-    if (images.length === 0) {
-        notFound();
-    }
+    useEffect(() => {
+        startTimer();
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, [selectedAlbum]);
 
-    const [open, setOpen] = useState(false);
-    const [index, setIndex] = useState(0);
+    const handleDotClick = (index: number) => {
+        setCurrentImageIndex(index);
+        if (timerRef.current) clearInterval(timerRef.current);
+        startTimer();
+    };
 
     return (
-        <main className="min-h-screen bg-gray-950 text-gray-100 py-12 flex flex-col items-center">
-            {/* Back to gallery */}
-            <Link href="/gallery" className="mb-8 text-gray-400 hover:text-gray-200 underline">
-                ← Back to Gallery
-            </Link>
+        <main className="min-h-screen flex flex-col items-center">
+            <section className="mt-8 text-center px-4">
+                <h1 className="text-4xl font-bold mb-4">Welcome to Our Interior Design Studio</h1>
+                <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+                    We transform spaces into beautiful, functional environments that reflect your unique style.
+                </p>
+            </section>
 
-            <h1 className="text-4xl font-bold mb-12 capitalize">
-                {album.replace('-', ' ')}
-            </h1>
-
-            {/* Grid of images */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-6 max-w-6xl">
-                {images.map((img, idx) => (
-                    <div
-                        key={idx}
-                        className="relative w-full h-64 rounded-md overflow-hidden shadow-md cursor-pointer"
+            {/* Album selector */}
+            <div className="flex gap-4 mt-8">
+                {Object.keys(homepageImages).map((album) => (
+                    <button
+                        key={album}
+                        className={`px-4 py-2 rounded-lg transition ${selectedAlbum === album ? 'bg-gray-700' : 'bg-gray-800 hover:bg-gray-700'}`}
                         onClick={() => {
-                            setIndex(idx);
-                            setOpen(true);
+                            setSelectedAlbum(album as AlbumKey);
+                            setCurrentImageIndex(0);
+                            if (timerRef.current) clearInterval(timerRef.current);
+                            startTimer();
                         }}
                     >
-                        <Image
-                            src={img.src}
-                            alt={img.title}
-                            fill
-                            sizes="(max-width: 768px) 100vw, 33vw"
-                            className="object-cover hover:scale-105 transition-transform duration-300"
-                        />
-                    </div>
+                        {album}
+                    </button>
                 ))}
             </div>
 
-            <Lightbox
-                open={open}
-                close={() => setOpen(false)}
-                index={index}
-                slides={images}
-                plugins={[Thumbnails, Captions]}
-            />
+            {/* Slideshow */}
+            <div className="relative w-full max-w-3xl h-[500px] rounded-xl overflow-hidden shadow-2xl mt-8">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={homepageImages[selectedAlbum][currentImageIndex]}
+                        initial={{ opacity: 0, scale: 1.05 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 1.5 }}
+                        className="absolute inset-0"
+                    >
+                        <Image
+                            src={homepageImages[selectedAlbum][currentImageIndex]}
+                            fill
+                            alt="Slideshow image"
+                            className="object-cover"
+                            priority
+                        />
+                    </motion.div>
+                </AnimatePresence>
+
+                {/* Dots */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
+                    {homepageImages[selectedAlbum].map((_, index) => (
+                        <motion.button
+                            key={index}
+                            onClick={() => handleDotClick(index)}
+                            className="w-3 h-3 rounded-full bg-gray-500"
+                            animate={{
+                                scale: index === currentImageIndex ? 1.5 : 1,
+                                backgroundColor: index === currentImageIndex ? '#ffffff' : '#6b7280',
+                            }}
+                            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                        />
+                    ))}
+                </div>
+            </div>
         </main>
     );
 }
