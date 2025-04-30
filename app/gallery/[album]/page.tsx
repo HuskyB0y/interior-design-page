@@ -11,8 +11,12 @@ import 'yet-another-react-lightbox/plugins/thumbnails.css';
 import Captions from 'yet-another-react-lightbox/plugins/captions';
 import 'yet-another-react-lightbox/plugins/captions.css';
 
-// Album data
-const albums = {
+// Define album type
+type AlbumKey = 'modern-interiors' | 'classic-rooms';
+type ImageItem = { src: string; title: string };
+
+// Albums data
+const albums: Record<AlbumKey, ImageItem[]> = {
     'modern-interiors': [
         { src: '/modern/1.jpg', title: 'Modern Living Room' },
         { src: '/modern/2.jpg', title: 'Modern Kitchen' },
@@ -25,15 +29,15 @@ const albums = {
     ],
 };
 
-// ✅ Correct Promise-unwrapped access using use()
+// ✅ Client component with async param unwrap
 export default function AlbumPage({ params }: { params: Promise<{ album: string }> }) {
-    const { album } = use(params); // ✅ unwrap the Promise
+    const { album } = use(params);
 
-    const images = albums[album as keyof typeof albums] ?? [];
-
+    // Assert album as known key (if it exists)
+    const images = albums[album as AlbumKey] ?? [];
 
     if (images.length === 0) {
-        notFound(); // show 404 if not found
+        notFound();
     }
 
     const [open, setOpen] = useState(false);
@@ -41,17 +45,16 @@ export default function AlbumPage({ params }: { params: Promise<{ album: string 
 
     return (
         <main className="min-h-screen bg-gray-950 text-gray-100 py-12 flex flex-col items-center">
-            {/* Back to gallery link */}
+            {/* Back to gallery */}
             <Link href="/gallery" className="mb-8 text-gray-400 hover:text-gray-200 underline">
                 ← Back to Gallery
             </Link>
 
-            {/* Album title */}
             <h1 className="text-4xl font-bold mb-12 capitalize">
                 {album.replace('-', ' ')}
             </h1>
 
-            {/* Images grid */}
+            {/* Grid of images */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-6 max-w-6xl">
                 {images.map((img, idx) => (
                     <div
@@ -66,14 +69,13 @@ export default function AlbumPage({ params }: { params: Promise<{ album: string 
                             src={img.src}
                             alt={img.title}
                             fill
-                            className="object-cover hover:scale-105 transition-transform duration-300"
                             sizes="(max-width: 768px) 100vw, 33vw"
+                            className="object-cover hover:scale-105 transition-transform duration-300"
                         />
                     </div>
                 ))}
             </div>
 
-            {/* Lightbox with thumbnails and captions */}
             <Lightbox
                 open={open}
                 close={() => setOpen(false)}
