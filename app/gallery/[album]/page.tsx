@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 
-// Define allowed album keys
+// Define the album keys
 type AlbumKey = 'modern' | 'classic' | 'o_classic';
 
 const homepageImages: Record<AlbumKey, string[]> = {
@@ -20,9 +20,9 @@ export default function Home() {
 
     const startTimer = () => {
         timerRef.current = setInterval(() => {
-            const albumKey = selectedAlbum as keyof typeof homepageImages;
             setCurrentImageIndex((prev) =>
-                (prev + 1) % homepageImages[albumKey].length
+                (prev + 1) %
+                homepageImages[selectedAlbum as keyof typeof homepageImages].length
             );
         }, 4000);
     };
@@ -40,23 +40,27 @@ export default function Home() {
         startTimer();
     };
 
-    const albumKey = selectedAlbum as keyof typeof homepageImages;
-
     return (
         <main className="min-h-screen flex flex-col items-center">
+            {/* Description */}
             <section className="mt-8 text-center px-4">
-                <h1 className="text-4xl font-bold mb-4">Welcome to Our Interior Design Studio</h1>
+                <h1 className="text-4xl font-bold mb-4">
+                    Welcome to Our Interior Design Studio
+                </h1>
                 <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-                    We transform spaces into beautiful, functional environments that reflect your unique style.
+                    We transform spaces into beautiful, functional environments that reflect
+                    your unique style.
                 </p>
             </section>
 
-            {/* Album selection */}
+            {/* Album switcher */}
             <div className="flex gap-4 mt-8">
                 {(Object.keys(homepageImages) as AlbumKey[]).map((album) => (
                     <button
                         key={album}
-                        className={`px-4 py-2 rounded-lg transition ${selectedAlbum === album ? 'bg-gray-700' : 'bg-gray-800 hover:bg-gray-700'
+                        className={`px-4 py-2 rounded-lg transition ${selectedAlbum === album
+                                ? 'bg-gray-700'
+                                : 'bg-gray-800 hover:bg-gray-700'
                             }`}
                         onClick={() => {
                             setSelectedAlbum(album);
@@ -74,7 +78,11 @@ export default function Home() {
             <div className="relative w-full max-w-3xl h-[500px] rounded-xl overflow-hidden shadow-2xl mt-8">
                 <AnimatePresence mode="wait">
                     <motion.div
-                        key={homepageImages[albumKey][currentImageIndex]}
+                        key={
+                            homepageImages[selectedAlbum as keyof typeof homepageImages][
+                            currentImageIndex
+                            ]
+                        }
                         initial={{ opacity: 0, scale: 1.05 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
@@ -82,29 +90,36 @@ export default function Home() {
                         className="absolute inset-0"
                     >
                         <Image
-                            src={homepageImages[albumKey][currentImageIndex]}
+                            src={
+                                homepageImages[selectedAlbum as keyof typeof homepageImages][
+                                currentImageIndex
+                                ]
+                            }
                             fill
-                            alt="Interior Design"
+                            alt="Slideshow"
                             className="object-cover"
                             priority
                         />
                     </motion.div>
                 </AnimatePresence>
 
-                {/* Dots */}
+                {/* Navigation dots */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
-                    {homepageImages[albumKey].map((_, index) => (
-                        <motion.button
-                            key={index}
-                            onClick={() => handleDotClick(index)}
-                            className="w-3 h-3 rounded-full bg-gray-500"
-                            animate={{
-                                scale: index === currentImageIndex ? 1.5 : 1,
-                                backgroundColor: index === currentImageIndex ? '#ffffff' : '#6b7280',
-                            }}
-                            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-                        />
-                    ))}
+                    {homepageImages[selectedAlbum as keyof typeof homepageImages].map(
+                        (_, index) => (
+                            <motion.button
+                                key={index}
+                                onClick={() => handleDotClick(index)}
+                                className="w-3 h-3 rounded-full bg-gray-500"
+                                animate={{
+                                    scale: index === currentImageIndex ? 1.5 : 1,
+                                    backgroundColor:
+                                        index === currentImageIndex ? '#ffffff' : '#6b7280',
+                                }}
+                                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                            />
+                        )
+                    )}
                 </div>
             </div>
         </main>
