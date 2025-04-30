@@ -29,7 +29,8 @@ const albums = {
 export default function AlbumPage({ params }: { params: Promise<{ album: string }> }) {
     const { album } = use(params); // ✅ unwrap the Promise
 
-    const images = albums[album] ?? [];
+    const images = albums[album as keyof typeof albums] ?? [];
+
 
     if (images.length === 0) {
         notFound(); // show 404 if not found
