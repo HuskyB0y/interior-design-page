@@ -3,27 +3,14 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import Link from 'next/link';
 
-// Define the album key type
+// Define allowed album keys
 type AlbumKey = 'modern' | 'classic' | 'o_classic';
 
 const homepageImages: Record<AlbumKey, string[]> = {
-    modern: [
-        '/modern/1.jpg',
-        '/modern/2.jpg',
-        '/modern/3.jpg',
-    ],
-    classic: [
-        '/classic/1.jpg',
-        '/classic/2.jpg',
-        '/classic/3.jpg',
-    ],
-    o_classic: [
-        '/o_classic/1.jpg',
-        '/o_classic/2.jpg',
-        '/o_classic/3.jpg',
-    ],
+    modern: ['/modern/1.jpg', '/modern/2.jpg', '/modern/3.jpg'],
+    classic: ['/classic/1.jpg', '/classic/2.jpg', '/classic/3.jpg'],
+    o_classic: ['/o_classic/1.jpg', '/o_classic/2.jpg', '/o_classic/3.jpg'],
 };
 
 export default function Home() {
@@ -33,8 +20,9 @@ export default function Home() {
 
     const startTimer = () => {
         timerRef.current = setInterval(() => {
+            const albumKey = selectedAlbum as keyof typeof homepageImages;
             setCurrentImageIndex((prev) =>
-                (prev + 1) % homepageImages[selectedAlbum].length
+                (prev + 1) % homepageImages[albumKey].length
             );
         }, 4000);
     };
@@ -52,6 +40,8 @@ export default function Home() {
         startTimer();
     };
 
+    const albumKey = selectedAlbum as keyof typeof homepageImages;
+
     return (
         <main className="min-h-screen flex flex-col items-center">
             <section className="mt-8 text-center px-4">
@@ -61,14 +51,15 @@ export default function Home() {
                 </p>
             </section>
 
-            {/* Album selector */}
+            {/* Album selection */}
             <div className="flex gap-4 mt-8">
-                {Object.keys(homepageImages).map((album) => (
+                {(Object.keys(homepageImages) as AlbumKey[]).map((album) => (
                     <button
                         key={album}
-                        className={`px-4 py-2 rounded-lg transition ${selectedAlbum === album ? 'bg-gray-700' : 'bg-gray-800 hover:bg-gray-700'}`}
+                        className={`px-4 py-2 rounded-lg transition ${selectedAlbum === album ? 'bg-gray-700' : 'bg-gray-800 hover:bg-gray-700'
+                            }`}
                         onClick={() => {
-                            setSelectedAlbum(album as AlbumKey);
+                            setSelectedAlbum(album);
                             setCurrentImageIndex(0);
                             if (timerRef.current) clearInterval(timerRef.current);
                             startTimer();
@@ -83,7 +74,7 @@ export default function Home() {
             <div className="relative w-full max-w-3xl h-[500px] rounded-xl overflow-hidden shadow-2xl mt-8">
                 <AnimatePresence mode="wait">
                     <motion.div
-                        key={homepageImages[selectedAlbum][currentImageIndex]}
+                        key={homepageImages[albumKey][currentImageIndex]}
                         initial={{ opacity: 0, scale: 1.05 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
@@ -91,9 +82,9 @@ export default function Home() {
                         className="absolute inset-0"
                     >
                         <Image
-                            src={homepageImages[selectedAlbum][currentImageIndex]}
+                            src={homepageImages[albumKey][currentImageIndex]}
                             fill
-                            alt="Slideshow image"
+                            alt="Interior Design"
                             className="object-cover"
                             priority
                         />
@@ -102,7 +93,7 @@ export default function Home() {
 
                 {/* Dots */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
-                    {homepageImages[selectedAlbum].map((_, index) => (
+                    {homepageImages[albumKey].map((_, index) => (
                         <motion.button
                             key={index}
                             onClick={() => handleDotClick(index)}
