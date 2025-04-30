@@ -1,0 +1,4 @@
+@echo off
+cd interior-design-page
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+npm run dev
